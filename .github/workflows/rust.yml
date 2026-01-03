@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-windows:
     runs-on: ubuntu-latest # A Linux runner for cross-compilation
     steps:
     - uses: actions/checkout@v4
@@ -31,3 +31,24 @@ jobs:
       with:
         name: starfield-x86_64
         path: target/x86_64-pc-windows-gnu/release/starfield.exe
+        
+  create-release:
+    needs: build-windows # This job runs after the build job is complete
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create and upload to a GitHub Release
+    steps:
+      - name: Download executables
+        uses: actions/download-artifact@v4
+        with:
+          name: starfield-x86_64
+          path: artifacts
+
+      - name: List downloaded files (optional verification)
+        run: ls -R artifacts
+
+      - name: Create and upload GitHub Release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*.exe # Upload all .exe files in the artifacts directory
+          generate_release_notes: true # Optional: Automatically generate release notes
