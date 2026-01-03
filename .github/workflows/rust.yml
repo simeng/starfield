@@ -11,12 +11,23 @@ env:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-latest # A Linux runner for cross-compilation
     steps:
     - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: x86_64-pc-windows-gnu # Add the Windows 64-bit GNU target
+
+    - name: Install MinGW GCC linker
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64 gcc-x86-64-w64-mingw32
+
+    - name: Build for Windows 64-bit
+      run: cargo build --target x86_64-pc-windows-gnu --release
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: starfield-x86_64
+        path: target/x86_64-pc-windows-gnu/release/starfield.exe
